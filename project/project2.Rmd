@@ -1,0 +1,301 @@
+---
+title: "Project 2"
+author: "Lauren Contreras"
+date: "April 7th"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## Introduction
+
+From the academic years of 2000-2002, the University of Texas at Austin collected data to analyze the connection between different course evaluations to the ratings of beauty for its instructors. This dataset includes 12 variables with 463 observations. For the numeric variables, the dataset recorded the age of the instructions as "age", the averaged rating (in which the mean was set to zero) by a panel of six students of the instructor's physical appearance as "beauty", the evaluation score for the course (on a scale of 1-5, meaning low to high) as "eval", how many students participated in the evaluation as "students", and the total number of students enrolled in the course as "allstudents". For categorical variables, whether or not the instructor was apart of a minority race was listed under the variable "minority", the gender of the instructor was listed under "gender", whether the course was a single-credit elective was listed under "credit", whether the course was upper or lower division level was listed under "division", whether the instructor was a native English speaker was listed under "native", whether the instructor was on tenure track was listed under "tenure", and the assigned instructor ID number for the dataset was listed under "prof". I anticipate that beauty will cause a significant effect on evaluation scores, especially when accounting for gender. I am also interested in exploring the significance effect of beauty on other categorical variables like tenure. 
+
+```{R}
+data("TeachingRatings", package = "AER")
+```
+
+## MANOVA
+
+I wanted to investigate if there was a significant difference (based on gender) between means of evaluation score, means of age, means of beauty scoring, means of number for students filling out the survey, and means of total number of students enrolled in the course. 
+
+For this MANOVA test, it is unlikely that all assumptions were met. However, I did test the multivariate normality assumption and the homogeneity of covariance assumption. For both tests, the p-value was below 0.5. Hence, I rejected the null hypothesis that these assumptions were met.
+
+With the results of the MANOVA, I conclude that gender indeed has a significant effect on the numeric variables. This was determined by comparing the p-values to the alpha value of 0.5. Thus, I performed a univariate ANOVA tests for the numeric variables. With the according results, I found gender once again had a significant effect on all the numeric variables, with p-values lower than alpha. With these significant variables, I ran 5 pairwise t-tests, which again reflected the significant difference between the means of the two genders. 
+
+Since a total of 11 tests werre performed, the significance level needed to be corrected. Adjusting the alpha value for the 11 tests performed, there is a 0.4311999 probability of a Type I error occurring. Additionally, the boneferroni adjusted significance level is 0.004545455 so that the overall Type I error stays at 0.05. Despite this corrected significance level, all mean differences remained significant. 
+
+```{R}
+manova <- manova(cbind(eval, age, beauty, students, allstudents) ~ gender, data = TeachingRatings)
+summary(manova)
+
+summary.aov(manova)
+
+library(rstatix)
+group <- TeachingRatings$gender
+DVs <- TeachingRatings %>% select(eval, age, beauty, students, allstudents)
+sapply(split(DVs,group), mshapiro_test)
+
+box_m(DVs, group)
+
+library(dplyr)
+library(ggplot2)
+group <- TeachingRatings %>% group_by(gender) %>% summarise(mean(eval), mean(age), mean(beauty), mean(students), mean(allstudents))
+group
+
+pairwise.t.test(TeachingRatings$eval, TeachingRatings$gender, p.adj = "none")
+pairwise.t.test(TeachingRatings$age, TeachingRatings$gender, p.adj = "none")
+pairwise.t.test(TeachingRatings$beauty, TeachingRatings$gender, p.adj = "none")
+pairwise.t.test(TeachingRatings$students, TeachingRatings$gender, p.adj = "none")
+pairwise.t.test(TeachingRatings$allstudents, TeachingRatings$gender, p.adj = "none")
+
+1 - (0.95^11)
+0.05/11
+```
+
+## Randomization Test
+
+Null Hypothesis: The evaluation of a female instructor do not significantly differ from the evaluation of a male instructor.
+
+Alternative Hypothesis: The evaluation of a female instructor do indeed significantly differ from the evaluation of a male instructor.
+
+I chose to test for the mean difference between the groups in order to determine if gender can predict evaluations. By manually computing the mean difference, I was able to compare the results to a Welch Two Sample t-test. The t-test value (0.168004) aligned with the value computed manually. Calculating the p-value shows probability of observing a mean difference as extreme as the one observed under randomization distribution. The p-value is 8e-04, so we can draw the conclusion that both sexes have a significant difference between their evaluations.
+
+```{R}
+set.seed(348)
+
+random <- vector()
+for (i in 1:5000) {
+  rand.dat <- data.frame(eval = sample(TeachingRatings$eval), gender = TeachingRatings$gender)
+  random[i] <- mean(rand.dat[rand.dat$gender == "male", ]$eval) - mean(rand.dat[rand.dat$gender == "female", ]$eval)
+}
+
+TeachingRatings %>% group_by(gender) %>% summarize(means = mean(eval)) %>% 
+  summarize("mean.diff" = diff(means))
+
+mean(random > 0.1680042 | random < -0.1680042)
+
+t.test(eval~gender, data = TeachingRatings)
+
+4.069030 - 3.901026
+
+data.frame(random) %>%ggplot(aes(random)) + geom_histogram(aes(y=..density..)) + geom_density() + geom_vline(xintercept = 0.1680042) + geom_vline(xintercept = -0.1680042)
+```   
+
+## Linear Regression Model
+
+Null Hypothesis (1): When controlling for the effect of gender, beauty does not have a significant effect on the evaluation for the instructor.
+
+Null Hypothesis (2): When controlling for the effect of beauty, gender does not have a significant effect on the evaluation for the instructor.
+
+My linear regression equation resulted as follows: 
+  evaluation = 4.085949 + 0.200274(center.beauty) - 0.195097(genderfemale) - 0.112658(center.beauty*genderfemale) 
+
+Since the beauty rating is numeric, I centered the variable around its mean. Controlling for gender, an instructor will have evaluation scores 0.200274 points higher for every 1 unit increase in beauty rating. Controlling for beauty, evaluation scores are 0.195097 points lower for female instructors as oppose to males on average. The predicted evaluation score for an average beauty rating and a male instructor is 4.085949. Thus, gender and beauty account for 6.65% of the variation in instructor evaluations.
+
+Checking assumption of linearity, normality, and homoskedasticity graphically, all assumptions have been fulfilled by the regression data except for homoskedasticity since it has an unequal spread.
+
+When recomputing the regression results with robust standard errors, the coefficient estimates were distinctly similar to the previous results. Additionally, the significance of the results remained the same. For both models, the effects of beauty and gender were separately significant to the results of evaluation. However, the interaction between beauty and gender was not significant in providing an effect on evaluation. 
+
+```{R}
+TeachingRatings <- TeachingRatings %>% mutate(center.beauty = beauty - mean(beauty, na.rm=T)) 
+
+fit <- lm(eval ~ center.beauty*gender, data = TeachingRatings)
+summary(fit)
+
+TeachingRatings %>% select(eval, center.beauty, gender) %>% na.omit %>% 
+  ggplot(aes(eval, center.beauty, color = gender)) +geom_point() + geom_smooth(method = "lm") +
+  ggtitle("Instructor Evaluations as a Function of Beauty") + xlab("Beauty") + ylab("Evaluation")
+
+plot(fit,1)
+
+plot(fit,2)
+
+plot(fit,3)
+
+library(lmtest)
+library(sandwich)
+bptest(fit)
+
+coeftest(fit, vcov = vcovHC(fit))
+```
+
+## Linear Regression Model with Bootstrapped Standard Errors
+
+When resampling observations to compute bootstrapped standard errors, the standard errors remain very close in value to the original SEs and the robust SEs. When resampling residuals, the results were also consistent.
+
+```{R}
+set.seed(348)
+
+samp_distn<-replicate(5000, {  
+  boot_dat <- sample_frac(TeachingRatings, replace=T) 
+fit2 <- lm(eval ~ center.beauty*gender, data=boot_dat) 
+coef(fit2) 
+}) 
+
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd)
+
+ resids<-fit$residuals 
+ fitted<-fit$fitted.values 
+ 
+ resid_resamp<-replicate(5000,{  
+   new_resids<-sample(resids,replace=TRUE) 
+   TeachingRatings$new_y<-fitted+new_resids
+   fit3<-lm(new_y~center.beauty*gender, data=TeachingRatings) 
+   coef(fit3) 
+   })
+ 
+ resid_resamp %>% t %>% as.data.frame %>% summarize_all(sd)
+```
+
+## Logistic Regression Model
+
+The odds of an instructor having tenure decreased by 0.4005 times if the instructor was female as oppose to male, however this effect to predict odds was not significant with a p-value of 0.120. The odds of an instructor having tenure increase by 0.5502 times for every 1 unit increase in the beauty rating, however this effect also was not significant with a p-value of 0.832.
+
+Noteworthy, when creating a confusion matrix for the logistic regression, the model did not create any predictions for instructors without tenure aka the negative condition. Thus, the Specificity (TNR) could not calculated. The Accuracy (ACC) of this model was calculated to be 0.7796976. The Precision (PPV) was found to be the same value at 0.7796976. Finally, the Sensitivity (TPR) was calculated to be a value of 1. This is because all the true classifications of tenure were predicted correctly by the model where no negative conditions were predicted. Thus, this model has fair accuracy and precision, but it is excellent at predicting accurate positive outcomes. 
+
+```{R}
+TeachingRatings1 <- TeachingRatings %>% mutate(y=ifelse(tenure=="yes",1,0))
+fit.combo<-glm(y ~ gender + center.beauty, data=TeachingRatings1, family="binomial")
+summary(fit.combo)
+exp(coef(fit.combo))
+
+TeachingRatings1$probs <- predict(fit.combo, type = "response")
+table(predict = as.numeric(TeachingRatings1$probs > 0.5), truth = TeachingRatings1$tenure) %>% 
+    addmargins
+
+#ACC 
+361/463
+
+#TNR does not exist
+
+#TPR
+361/361
+
+#PPV
+361/463
+
+
+TeachingRatings1$logit <- predict(fit.combo, type = "link")
+TeachingRatings1 %>% ggplot() + geom_density(aes(TeachingRatings1$logit, color = tenure, 
+    fill = tenure), alpha = 0.4) + theme(legend.position = c(0.2, 
+    0.8)) + geom_vline(xintercept = 0) + xlab("Logit (log odds)") + ylab("Density") + 
+    geom_rug(aes(TeachingRatings1$logit, color = tenure))
+```
+
+Using the "class_diag" function, AUC was calculated to be 0.7874369. This value was confirmed when calculating for AUC through the ROC curve. AUC illustrates how well the model can differentiate between the two outcomes. Since the calculated AUC is within 0.7-0.8, I have concluded that my model has fair test performance. 
+
+Through the "class_diag" function, the Accuracy (ACC) of the model increased to 0.8207343. The Sensitivity (TPR) decreased to 0.9750693. The Specificity (TNR) could be calculated and was found to be 0.2745098. The Precision (PPV) increased to 0.8262911. Due to the tradeoff between true positives and true negatives, Sensitivity decreased as Speficity increased.
+
+```{R}
+library(knitr)
+opts_chunk$set(fig.align="center", fig.height=5, message=FALSE, warning=FALSE, fig.width=8, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+
+class_diag <- function(probs,truth){ 
+  #CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV 
+  if(is.character(truth)==TRUE) truth<-as.factor(truth) 
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1 
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),factor(truth, levels=c(0,1))) 
+  acc=sum(diag(tab))/sum(tab) 
+  sens=tab[2,2]/colSums(tab)[2] 
+  spec=tab[1,1]/colSums(tab)[1] 
+  ppv=tab[2,2]/rowSums(tab)[2] 
+  
+#CALCULATE EXACT AUC 
+  ord<-order(probs, decreasing=TRUE) 
+  probs <- probs[ord]; truth <- truth[ord] 
+  TPR=cumsum(truth)/max(1,sum(truth))  
+  FPR=cumsum(!truth)/max(1,sum(!truth)) 
+  dup <-c(probs[-1]>=probs[-length(probs)], FALSE) 
+  TPR <-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1) 
+  n <- length(TPR) 
+  auc <- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n])) 
+  data.frame(acc,sens,spec,ppv,auc) 
+}
+
+TeachingRatings2 <- TeachingRatings1 %>% select(-tenure, -probs, -logit, -prof)
+
+fit.leng <- glm(y ~ ., data = TeachingRatings2, family = "binomial")
+coef(fit.leng)
+summary(fit.leng)
+
+probs1 <- predict(fit.leng, type = "response")
+class_diag(probs1, TeachingRatings2$y)
+
+library(plotROC)
+ROC <- ggplot(TeachingRatings2) + geom_roc(aes(d = y, m = probs1, n.cute = 0))
+ROC
+calc_auc(ROC)
+```
+
+## Logistic Regression Model for All Variables
+
+I next performed a logistic regression predicting the same binary response variable from the rest of my variables, except for the "prof" variable since it was only an identification number and the "students" variable since it only related to filling out the evaluation survey. Since some variables were numeric, I centered the variables around their means. All these results were significant except those for the beauty rating, the evaluation score, and whether the professor was a native English speaker. The odds of an instructor having tenure decreased by 0.980080 times if the gender of the instructor was female as opposed to male. The odds of an instructor having tenure increased by 1.705020 times if the instructor was a part of a minority race. The odds of an instructor having tenure decreased by 0.055245 times for every 1 year increase in the age of the instructor. The odds of an instructor having tenure decreased by 2.883801 times if their course was a single-credit elective. The odds of an instructor having tenure decreased by 0.290494 times for every 1 unit increase in the beauty rating. The odds of an instructor having tenure decreased by 0.255534 times for every 1 point increase in the evaluation score. The odds of an instructor having tenure decreased by 0.605185 times if their course was lower-division. The odds of an instructor having tenure increased by 16.152793 times if the instructor was not a native English speaker. The odds of an instructor having tenure increased by 0.009243 times for every 1 student increase in the total number of student enrolled in the course.
+
+Using the "class_diag" function again, the Accuracy (ACC) of the model increased slightly to 0.8230342 from 0.8228942. The Sensitivity (TPR) decreased slightly to 0.9747187 from 0.9750693. The Specificity (TNR) increased to 0.306688 from 0.2843137. The Precision (PPV) decreased slightly to 0.8280068 from 0.8282353. When considering the tradeoff between Sensitivity and Specificity, this is a rational trend. When comparing to the AUC calculated from the ROC plot, it increased from the in-sample metrics of 0.7870295 to the out-of-sample metrics of 0.7991698. This shows a slight increase in test performance. 
+
+After performing LASSO, I concluded all the variables tested could be retained. Thus, the second logistic regression did need to be performed. 
+
+```{R}
+TeachingRatings1 <- TeachingRatings1 %>% mutate(center.beauty = beauty - mean(beauty, na.rm=T)) 
+TeachingRatings1 <- TeachingRatings1 %>% mutate(center.age = age - mean(age, na.rm=T)) 
+TeachingRatings1 <- TeachingRatings1 %>% mutate(center.eval = eval - mean(eval, na.rm=T)) 
+TeachingRatings1 <- TeachingRatings1 %>% mutate(center.allstudents = allstudents - mean(allstudents, na.rm=T)) 
+
+fit.all <- glm(formula = y ~ gender + minority + center.age + credits + center.beauty + 
+    center.eval + division + native + center.allstudents, family = binomial(link = "logit"), 
+    data = TeachingRatings1)
+summary(fit.all)
+exp(coef(fit.all))
+
+TeachingRatings1$probs2 <- predict(fit.all, type = "response")
+table(predict = as.numeric(TeachingRatings1$probs2 > 0.5), truth = TeachingRatings1$tenure) %>% 
+    addmargins
+
+#ACC 
+(29 + 352)/463
+
+#TNR
+29/102
+
+#TPR
+352/361
+
+#PPV
+352/425
+
+ROC <- ggplot(TeachingRatings1) + geom_roc(aes(d = y, m = probs2, n.cute = 0))
+ROC
+calc_auc(ROC)
+
+k = 10
+data1 <- TeachingRatings1[sample(nrow(TeachingRatings1)), ]
+folds <- cut(seq(1:nrow(TeachingRatings1)), breaks = k, labels = F)
+
+diags <- NULL
+for (i in 1:k) {
+    train <- data1[folds != i, ]
+    test <- data1[folds == i, ]
+    truth <- test$tenure
+    fit1 <- glm(tenure ~ ., data = train, family = "binomial")
+    prob <- predict(fit.all, newdata = test, type = "response")
+    
+    diags <- rbind(diags, class_diag(prob, truth))
+}
+summarize_all(diags, mean)
+
+library(glmnet)
+set.seed(1234)
+response <- as.matrix(TeachingRatings1$tenure)
+explanatory <- model.matrix(fit.all)[,-1]
+head(explanatory)
+
+cv <- cv.glmnet(explanatory, response, family = "binomial")
+lasso <- glmnet(explanatory, response, family = "binomial", lambda = cv$lambda.1se)
+coef(lasso)
+```

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Lauren Contreras" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 2</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">Project 2</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>From the academic years of 2000-2002, the University of Texas at Austin collected data to analyze the connection between different course evaluations to the ratings of beauty for its instructors. This dataset includes 12 variables with 463 observations. For the numeric variables, the dataset recorded the age of the instructions as “age”, the averaged rating (in which the mean was set to zero) by a panel of six students of the instructor’s physical appearance as “beauty”, the evaluation score for the course (on a scale of 1-5, meaning low to high) as “eval”, how many students participated in the evaluation as “students”, and the total number of students enrolled in the course as “allstudents”. For categorical variables, whether or not the instructor was apart of a minority race was listed under the variable “minority”, the gender of the instructor was listed under “gender”, whether the course was a single-credit elective was listed under “credit”, whether the course was upper or lower division level was listed under “division”, whether the instructor was a native English speaker was listed under “native”, whether the instructor was on tenure track was listed under “tenure”, and the assigned instructor ID number for the dataset was listed under “prof”. I anticipate that beauty will cause a significant effect on evaluation scores, especially when accounting for gender. I am also interested in exploring the significance effect of beauty on other categorical variables like tenure.</p>
+<pre class="r"><code>data(&quot;TeachingRatings&quot;, package = &quot;AER&quot;)</code></pre>
+</div>
+<div id="manova" class="section level2">
+<h2>MANOVA</h2>
+<p>I wanted to investigate if there was a significant difference (based on gender) between means of evaluation score, means of age, means of beauty scoring, means of number for students filling out the survey, and means of total number of students enrolled in the course.</p>
+<p>For this MANOVA test, it is unlikely that all assumptions were met. However, I did test the multivariate normality assumption and the homogeneity of covariance assumption. For both tests, the p-value was below 0.5. Hence, I rejected the null hypothesis that these assumptions were met.</p>
+<p>With the results of the MANOVA, I conclude that gender indeed has a significant effect on the numeric variables. This was determined by comparing the p-values to the alpha value of 0.5. Thus, I performed a univariate ANOVA tests for the numeric variables. With the according results, I found gender once again had a significant effect on all the numeric variables, with p-values lower than alpha. With these significant variables, I ran 5 pairwise t-tests, which again reflected the significant difference between the means of the two genders.</p>
+<p>Since a total of 11 tests werre performed, the significance level needed to be corrected. Adjusting the alpha value for the 11 tests performed, there is a 0.4311999 probability of a Type I error occurring. Additionally, the boneferroni adjusted significance level is 0.004545455 so that the overall Type I error stays at 0.05. Despite this corrected significance level, all mean differences remained significant.</p>
+<pre class="r"><code>manova &lt;- manova(cbind(eval, age, beauty, students, allstudents) ~ 
+    gender, data = TeachingRatings)
+summary(manova)</code></pre>
+<pre><code>##            Df  Pillai approx F num Df den Df    Pr(&gt;F)    
+## gender      1 0.13946   14.812      5    457 1.769e-13 ***
+## Residuals 461                                             
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(manova)</code></pre>
+<pre><code>##  Response eval :
+##              Df  Sum Sq Mean Sq F value   Pr(&gt;F)   
+## gender        1   3.186  3.1859  10.562 0.001239 **
+## Residuals   461 139.053  0.3016                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response age :
+##              Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## gender        1   3608  3608.2  40.782 4.16e-10 ***
+## Residuals   461  40787    88.5                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response beauty :
+##              Df  Sum Sq Mean Sq F value   Pr(&gt;F)   
+## gender        1   4.542  4.5416  7.4033 0.006757 **
+## Residuals   461 282.806  0.6135                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response students :
+##              Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## gender        1   9725  9725.2  4.8385 0.02833 *
+## Residuals   461 926593  2010.0                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response allstudents :
+##              Df  Sum Sq Mean Sq F value   Pr(&gt;F)   
+## gender        1   41050   41050  7.3843 0.006827 **
+## Residuals   461 2562748    5559                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>library(rstatix)
+group &lt;- TeachingRatings$gender
+DVs &lt;- TeachingRatings %&gt;% select(eval, age, beauty, students, 
+    allstudents)
+sapply(split(DVs, group), mshapiro_test)</code></pre>
+<pre><code>##           male         female      
+## statistic 0.5689227    0.6942881   
+## p.value   2.879406e-25 1.301138e-18</code></pre>
+<pre class="r"><code>box_m(DVs, group)</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   statistic  p.value parameter method                                           
+##       &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                                            
+## 1      261. 5.32e-47        15 Box&#39;s M-test for Homogeneity of Covariance Matri…</code></pre>
+<pre class="r"><code>library(dplyr)
+library(ggplot2)
+group &lt;- TeachingRatings %&gt;% group_by(gender) %&gt;% summarise(mean(eval), 
+    mean(age), mean(beauty), mean(students), mean(allstudents))
+group</code></pre>
+<pre><code>## # A tibble: 2 x 6
+##   gender `mean(eval)` `mean(age)` `mean(beauty)` `mean(students)`
+##   &lt;fct&gt;         &lt;dbl&gt;       &lt;dbl&gt;          &lt;dbl&gt;            &lt;dbl&gt;
+## 1 male           4.07        50.7        -0.0845             40.5
+## 2 female         3.90        45.1         0.116              31.3
+## # … with 1 more variable: `mean(allstudents)` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>pairwise.t.test(TeachingRatings$eval, TeachingRatings$gender, 
+    p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  TeachingRatings$eval and TeachingRatings$gender 
+## 
+##        male  
+## female 0.0012
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(TeachingRatings$age, TeachingRatings$gender, 
+    p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  TeachingRatings$age and TeachingRatings$gender 
+## 
+##        male   
+## female 4.2e-10
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(TeachingRatings$beauty, TeachingRatings$gender, 
+    p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  TeachingRatings$beauty and TeachingRatings$gender 
+## 
+##        male  
+## female 0.0068
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(TeachingRatings$students, TeachingRatings$gender, 
+    p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  TeachingRatings$students and TeachingRatings$gender 
+## 
+##        male 
+## female 0.028
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(TeachingRatings$allstudents, TeachingRatings$gender, 
+    p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  TeachingRatings$allstudents and TeachingRatings$gender 
+## 
+##        male  
+## female 0.0068
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>1 - (0.95^11)</code></pre>
+<pre><code>## [1] 0.4311999</code></pre>
+<pre class="r"><code>0.05/11</code></pre>
+<pre><code>## [1] 0.004545455</code></pre>
+</div>
+<div id="randomization-test" class="section level2">
+<h2>Randomization Test</h2>
+<p>Null Hypothesis: The evaluation of a female instructor do not significantly differ from the evaluation of a male instructor.</p>
+<p>Alternative Hypothesis: The evaluation of a female instructor do indeed significantly differ from the evaluation of a male instructor.</p>
+<p>I chose to test for the mean difference between the groups in order to determine if gender can predict evaluations. By manually computing the mean difference, I was able to compare the results to a Welch Two Sample t-test. The t-test value (0.168004) aligned with the value computed manually. Calculating the p-value shows probability of observing a mean difference as extreme as the one observed under randomization distribution. The p-value is 8e-04, so we can draw the conclusion that both sexes have a significant difference between their evaluations.</p>
+<pre class="r"><code>set.seed(348)
+
+random &lt;- vector()
+for (i in 1:5000) {
+    rand.dat &lt;- data.frame(eval = sample(TeachingRatings$eval), 
+        gender = TeachingRatings$gender)
+    random[i] &lt;- mean(rand.dat[rand.dat$gender == &quot;male&quot;, ]$eval) - 
+        mean(rand.dat[rand.dat$gender == &quot;female&quot;, ]$eval)
+}
+
+TeachingRatings %&gt;% group_by(gender) %&gt;% summarize(means = mean(eval)) %&gt;% 
+    summarize(mean.diff = diff(means))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   mean.diff
+##       &lt;dbl&gt;
+## 1    -0.168</code></pre>
+<pre class="r"><code>mean(random &gt; 0.1680042 | random &lt; -0.1680042)</code></pre>
+<pre><code>## [1] 8e-04</code></pre>
+<pre class="r"><code>t.test(eval ~ gender, data = TeachingRatings)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  eval by gender
+## t = 3.2667, df = 425.76, p-value = 0.001176
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  0.06691754 0.26909088
+## sample estimates:
+##   mean in group male mean in group female 
+##             4.069030             3.901026</code></pre>
+<pre class="r"><code>4.06903 - 3.901026</code></pre>
+<pre><code>## [1] 0.168004</code></pre>
+<pre class="r"><code>data.frame(random) %&gt;% ggplot(aes(random)) + geom_histogram(aes(y = ..density..)) + 
+    geom_density() + geom_vline(xintercept = 0.1680042) + geom_vline(xintercept = -0.1680042)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="linear-regression-model" class="section level2">
+<h2>Linear Regression Model</h2>
+<p>Null Hypothesis (1): When controlling for the effect of gender, beauty does not have a significant effect on the evaluation for the instructor.</p>
+<p>Null Hypothesis (2): When controlling for the effect of beauty, gender does not have a significant effect on the evaluation for the instructor.</p>
+<p>My linear regression equation resulted as follows:
+evaluation = 4.085949 + 0.200274(center.beauty) - 0.195097(genderfemale) - 0.112658(center.beauty*genderfemale)</p>
+<p>Since the beauty rating is numeric, I centered the variable around its mean. Controlling for gender, an instructor will have evaluation scores 0.200274 points higher for every 1 unit increase in beauty rating. Controlling for beauty, evaluation scores are 0.195097 points lower for female instructors as oppose to males on average. The predicted evaluation score for an average beauty rating and a male instructor is 4.085949. Thus, gender and beauty account for 6.65% of the variation in instructor evaluations.</p>
+<p>Checking assumption of linearity, normality, and homoskedasticity graphically, all assumptions have been fulfilled by the regression data except for homoskedasticity since it has an unequal spread.</p>
+<p>When recomputing the regression results with robust standard errors, the coefficient estimates were distinctly similar to the previous results. Additionally, the significance of the results remained the same. For both models, the effects of beauty and gender were separately significant to the results of evaluation. However, the interaction between beauty and gender was not significant in providing an effect on evaluation.</p>
+<pre class="r"><code>TeachingRatings &lt;- TeachingRatings %&gt;% mutate(center.beauty = beauty - 
+    mean(beauty, na.rm = T))
+
+fit &lt;- lm(eval ~ center.beauty * gender, data = TeachingRatings)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = eval ~ center.beauty * gender, data = TeachingRatings)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.83820 -0.37387  0.04551  0.39876  1.06764 
+## 
+## Coefficients:
+##                            Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                 4.08595    0.03295 123.999  &lt; 2e-16 ***
+## center.beauty               0.20027    0.04333   4.622 4.95e-06 ***
+## genderfemale               -0.19510    0.05089  -3.834 0.000144 ***
+## center.beauty:genderfemale -0.11266    0.06398  -1.761 0.078910 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.5361 on 459 degrees of freedom
+## Multiple R-squared:  0.07256,    Adjusted R-squared:  0.0665 
+## F-statistic: 11.97 on 3 and 459 DF,  p-value: 1.47e-07</code></pre>
+<pre class="r"><code>TeachingRatings %&gt;% select(eval, center.beauty, gender) %&gt;% na.omit %&gt;% 
+    ggplot(aes(eval, center.beauty, color = gender)) + geom_point() + 
+    geom_smooth(method = &quot;lm&quot;) + ggtitle(&quot;Instructor Evaluations as a Function of Beauty&quot;) + 
+    xlab(&quot;Beauty&quot;) + ylab(&quot;Evaluation&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(fit, 1)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(fit, 2)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(fit, 3)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(lmtest)
+library(sandwich)
+bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 4.9736, df = 3, p-value = 0.1737</code></pre>
+<pre class="r"><code>coeftest(fit, vcov = vcovHC(fit))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                             Estimate Std. Error  t value  Pr(&gt;|t|)    
+## (Intercept)                 4.085949   0.032532 125.5961 &lt; 2.2e-16 ***
+## center.beauty               0.200274   0.047910   4.1802 3.489e-05 ***
+## genderfemale               -0.195097   0.050329  -3.8765 0.0001214 ***
+## center.beauty:genderfemale -0.112658   0.063054  -1.7867 0.0746467 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+</div>
+<div id="linear-regression-model-with-bootstrapped-standard-errors" class="section level2">
+<h2>Linear Regression Model with Bootstrapped Standard Errors</h2>
+<p>When resampling observations to compute bootstrapped standard errors, the standard errors remain very close in value to the original SEs and the robust SEs. When resampling residuals, the results were also consistent.</p>
+<pre class="r"><code>set.seed(348)
+
+samp_distn &lt;- replicate(5000, {
+    boot_dat &lt;- sample_frac(TeachingRatings, replace = T)
+    fit2 &lt;- lm(eval ~ center.beauty * gender, data = boot_dat)
+    coef(fit2)
+})
+
+samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept) center.beauty genderfemale center.beauty:genderfemale
+## 1  0.03249254    0.04744508   0.05077026                 0.06118904</code></pre>
+<pre class="r"><code>resids &lt;- fit$residuals
+fitted &lt;- fit$fitted.values
+
+resid_resamp &lt;- replicate(5000, {
+    new_resids &lt;- sample(resids, replace = TRUE)
+    TeachingRatings$new_y &lt;- fitted + new_resids
+    fit3 &lt;- lm(new_y ~ center.beauty * gender, data = TeachingRatings)
+    coef(fit3)
+})
+
+resid_resamp %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept) center.beauty genderfemale center.beauty:genderfemale
+## 1  0.03280723    0.04379814   0.05037285                 0.06421757</code></pre>
+</div>
+<div id="logistic-regression-model" class="section level2">
+<h2>Logistic Regression Model</h2>
+<p>The odds of an instructor having tenure decreased by 0.4005 times if the instructor was female as oppose to male, however this effect to predict odds was not significant with a p-value of 0.120. The odds of an instructor having tenure increase by 0.5502 times for every 1 unit increase in the beauty rating, however this effect also was not significant with a p-value of 0.832.</p>
+<p>Noteworthy, when creating a confusion matrix for the logistic regression, the model did not create any predictions for instructors without tenure aka the negative condition. Thus, the Specificity (TNR) could not calculated. The Accuracy (ACC) of this model was calculated to be 0.7796976. The Precision (PPV) was found to be the same value at 0.7796976. Finally, the Sensitivity (TPR) was calculated to be a value of 1. This is because all the true classifications of tenure were predicted correctly by the model where no negative conditions were predicted. Thus, this model has fair accuracy and precision, but it is excellent at predicting accurate positive outcomes.</p>
+<pre class="r"><code>TeachingRatings1 &lt;- TeachingRatings %&gt;% mutate(y = ifelse(tenure == 
+    &quot;yes&quot;, 1, 0))
+fit.combo &lt;- glm(y ~ gender + center.beauty, data = TeachingRatings1, 
+    family = &quot;binomial&quot;)
+summary(fit.combo)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ gender + center.beauty, family = &quot;binomial&quot;, 
+##     data = TeachingRatings1)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.8177   0.6480   0.6565   0.7659   0.7866  
+## 
+## Coefficients:
+##               Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)    1.42163    0.15483   9.182   &lt;2e-16 ***
+## genderfemale  -0.35325    0.22711  -1.555    0.120    
+## center.beauty -0.03032    0.14289  -0.212    0.832    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 488.27  on 462  degrees of freedom
+## Residual deviance: 485.69  on 460  degrees of freedom
+## AIC: 491.69
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<pre class="r"><code>exp(coef(fit.combo))</code></pre>
+<pre><code>##   (Intercept)  genderfemale center.beauty 
+##     4.1438868     0.7023983     0.9701388</code></pre>
+<pre class="r"><code>TeachingRatings1$probs &lt;- predict(fit.combo, type = &quot;response&quot;)
+table(predict = as.numeric(TeachingRatings1$probs &gt; 0.5), truth = TeachingRatings1$tenure) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict  no yes Sum
+##     1   102 361 463
+##     Sum 102 361 463</code></pre>
+<pre class="r"><code># ACC
+361/463</code></pre>
+<pre><code>## [1] 0.7796976</code></pre>
+<pre class="r"><code># TNR does not exist
+
+# TPR
+361/361</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code># PPV
+361/463</code></pre>
+<pre><code>## [1] 0.7796976</code></pre>
+<pre class="r"><code>TeachingRatings1$logit &lt;- predict(fit.combo, type = &quot;link&quot;)
+TeachingRatings1 %&gt;% ggplot() + geom_density(aes(TeachingRatings1$logit, 
+    color = tenure, fill = tenure), alpha = 0.4) + theme(legend.position = c(0.2, 
+    0.8)) + geom_vline(xintercept = 0) + xlab(&quot;Logit (log odds)&quot;) + 
+    ylab(&quot;Density&quot;) + geom_rug(aes(TeachingRatings1$logit, color = tenure))</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Using the “class_diag” function, AUC was calculated to be 0.7874369. This value was confirmed when calculating for AUC through the ROC curve. AUC illustrates how well the model can differentiate between the two outcomes. Since the calculated AUC is within 0.7-0.8, I have concluded that my model has fair test performance.</p>
+<p>Through the “class_diag” function, the Accuracy (ACC) of the model increased to 0.8207343. The Sensitivity (TPR) decreased to 0.9750693. The Specificity (TNR) could be calculated and was found to be 0.2745098. The Precision (PPV) increased to 0.8262911. Due to the tradeoff between true positives and true negatives, Sensitivity decreased as Speficity increased.</p>
+<pre class="r"><code>library(knitr)
+opts_chunk$set(fig.align = &quot;center&quot;, fig.height = 5, message = FALSE, 
+    warning = FALSE, fig.width = 8, tidy.opts = list(width.cutoff = 60), 
+    tidy = TRUE)
+
+class_diag &lt;- function(probs, truth) {
+    # CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV
+    if (is.character(truth) == TRUE) 
+        truth &lt;- as.factor(truth)
+    if (is.numeric(truth) == FALSE &amp; is.logical(truth) == FALSE) 
+        truth &lt;- as.numeric(truth) - 1
+    tab &lt;- table(factor(probs &gt; 0.5, levels = c(&quot;FALSE&quot;, &quot;TRUE&quot;)), 
+        factor(truth, levels = c(0, 1)))
+    acc = sum(diag(tab))/sum(tab)
+    sens = tab[2, 2]/colSums(tab)[2]
+    spec = tab[1, 1]/colSums(tab)[1]
+    ppv = tab[2, 2]/rowSums(tab)[2]
+    
+    # CALCULATE EXACT AUC
+    ord &lt;- order(probs, decreasing = TRUE)
+    probs &lt;- probs[ord]
+    truth &lt;- truth[ord]
+    TPR = cumsum(truth)/max(1, sum(truth))
+    FPR = cumsum(!truth)/max(1, sum(!truth))
+    dup &lt;- c(probs[-1] &gt;= probs[-length(probs)], FALSE)
+    TPR &lt;- c(0, TPR[!dup], 1)
+    FPR &lt;- c(0, FPR[!dup], 1)
+    n &lt;- length(TPR)
+    auc &lt;- sum(((TPR[-1] + TPR[-n])/2) * (FPR[-1] - FPR[-n]))
+    data.frame(acc, sens, spec, ppv, auc)
+}
+
+TeachingRatings2 &lt;- TeachingRatings1 %&gt;% select(-tenure, -probs, 
+    -logit, -prof)
+
+fit.leng &lt;- glm(y ~ ., data = TeachingRatings2, family = &quot;binomial&quot;)
+coef(fit.leng)</code></pre>
+<pre><code>##   (Intercept)   minorityyes           age  genderfemale creditssingle 
+##    5.29903758    1.72165486   -0.05714248   -0.97083002   -2.87891405 
+##        beauty          eval divisionlower      nativeno      students 
+##   -0.27651449   -0.23129321   -0.63024366   16.15400496   -0.01438615 
+##   allstudents center.beauty 
+##    0.01775143            NA</code></pre>
+<pre class="r"><code>summary(fit.leng)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ ., family = &quot;binomial&quot;, data = TeachingRatings2)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.3338   0.0001   0.4732   0.7079   1.8331  
+## 
+## Coefficients: (1 not defined because of singularities)
+##                Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)     5.29904    1.45524   3.641 0.000271 ***
+## minorityyes     1.72165    0.55395   3.108 0.001884 ** 
+## age            -0.05714    0.01561  -3.660 0.000252 ***
+## genderfemale   -0.97083    0.29362  -3.306 0.000945 ***
+## creditssingle  -2.87891    0.64549  -4.460 8.19e-06 ***
+## beauty         -0.27651    0.16810  -1.645 0.099973 .  
+## eval           -0.23129    0.24795  -0.933 0.350920    
+## divisionlower  -0.63024    0.28936  -2.178 0.029403 *  
+## nativeno       16.15400  642.14703   0.025 0.979930    
+## students       -0.01439    0.01825  -0.788 0.430466    
+## allstudents     0.01775    0.01158   1.533 0.125328    
+## center.beauty        NA         NA      NA       NA    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 488.27  on 462  degrees of freedom
+## Residual deviance: 397.04  on 452  degrees of freedom
+## AIC: 419.04
+## 
+## Number of Fisher Scoring iterations: 16</code></pre>
+<pre class="r"><code>probs1 &lt;- predict(fit.leng, type = &quot;response&quot;)
+class_diag(probs1, TeachingRatings2$y)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.8207343 0.9750693 0.2745098 0.8262911 0.7874369</code></pre>
+<pre class="r"><code>library(plotROC)
+ROC &lt;- ggplot(TeachingRatings2) + geom_roc(aes(d = y, m = probs1, 
+    n.cute = 0))
+ROC</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROC)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.7874369</code></pre>
+</div>
+<div id="logistic-regression-model-for-all-variables" class="section level2">
+<h2>Logistic Regression Model for All Variables</h2>
+<p>I next performed a logistic regression predicting the same binary response variable from the rest of my variables, except for the “prof” variable since it was only an identification number and the “students” variable since it only related to filling out the evaluation survey. Since some variables were numeric, I centered the variables around their means. All these results were significant except those for the beauty rating, the evaluation score, and whether the professor was a native English speaker. The odds of an instructor having tenure decreased by 0.980080 times if the gender of the instructor was female as opposed to male. The odds of an instructor having tenure increased by 1.705020 times if the instructor was a part of a minority race. The odds of an instructor having tenure decreased by 0.055245 times for every 1 year increase in the age of the instructor. The odds of an instructor having tenure decreased by 2.883801 times if their course was a single-credit elective. The odds of an instructor having tenure decreased by 0.290494 times for every 1 unit increase in the beauty rating. The odds of an instructor having tenure decreased by 0.255534 times for every 1 point increase in the evaluation score. The odds of an instructor having tenure decreased by 0.605185 times if their course was lower-division. The odds of an instructor having tenure increased by 16.152793 times if the instructor was not a native English speaker. The odds of an instructor having tenure increased by 0.009243 times for every 1 student increase in the total number of student enrolled in the course.</p>
+<p>Using the “class_diag” function again, the Accuracy (ACC) of the model increased slightly to 0.8230342 from 0.8228942. The Sensitivity (TPR) decreased slightly to 0.9747187 from 0.9750693. The Specificity (TNR) increased to 0.306688 from 0.2843137. The Precision (PPV) decreased slightly to 0.8280068 from 0.8282353. When considering the tradeoff between Sensitivity and Specificity, this is a rational trend. When comparing to the AUC calculated from the ROC plot, it increased from the in-sample metrics of 0.7870295 to the out-of-sample metrics of 0.7991698. This shows a slight increase in test performance.</p>
+<p>After performing LASSO, I concluded all the variables tested could be retained. Thus, the second logistic regression did need to be performed.</p>
+<pre class="r"><code>TeachingRatings1 &lt;- TeachingRatings1 %&gt;% mutate(center.beauty = beauty - 
+    mean(beauty, na.rm = T))
+TeachingRatings1 &lt;- TeachingRatings1 %&gt;% mutate(center.age = age - 
+    mean(age, na.rm = T))
+TeachingRatings1 &lt;- TeachingRatings1 %&gt;% mutate(center.eval = eval - 
+    mean(eval, na.rm = T))
+TeachingRatings1 &lt;- TeachingRatings1 %&gt;% mutate(center.allstudents = allstudents - 
+    mean(allstudents, na.rm = T))
+
+fit.all &lt;- glm(formula = y ~ gender + minority + center.age + 
+    credits + center.beauty + center.eval + division + native + 
+    center.allstudents, family = binomial(link = &quot;logit&quot;), data = TeachingRatings1)
+summary(fit.all)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ gender + minority + center.age + credits + 
+##     center.beauty + center.eval + division + native + center.allstudents, 
+##     family = binomial(link = &quot;logit&quot;), data = TeachingRatings1)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -2.32705   0.00011   0.47533   0.71427   1.82822  
+## 
+## Coefficients:
+##                      Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)          2.050493   0.237605   8.630  &lt; 2e-16 ***
+## genderfemale        -0.980080   0.293900  -3.335 0.000854 ***
+## minorityyes          1.705020   0.551794   3.090 0.002002 ** 
+## center.age          -0.055245   0.015294  -3.612 0.000304 ***
+## creditssingle       -2.883801   0.646336  -4.462 8.13e-06 ***
+## center.beauty       -0.290494   0.166989  -1.740 0.081929 .  
+## center.eval         -0.255534   0.245625  -1.040 0.298181    
+## divisionlower       -0.605185   0.287171  -2.107 0.035083 *  
+## nativeno            16.152793 642.046333   0.025 0.979929    
+## center.allstudents   0.009243   0.003460   2.671 0.007557 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 488.27  on 462  degrees of freedom
+## Residual deviance: 397.68  on 453  degrees of freedom
+## AIC: 417.68
+## 
+## Number of Fisher Scoring iterations: 16</code></pre>
+<pre class="r"><code>exp(coef(fit.all))</code></pre>
+<pre><code>##        (Intercept)       genderfemale        minorityyes         center.age 
+##       7.771731e+00       3.752810e-01       5.501498e+00       9.462536e-01 
+##      creditssingle      center.beauty        center.eval      divisionlower 
+##       5.592180e-02       7.478938e-01       7.745024e-01       5.459734e-01 
+##           nativeno center.allstudents 
+##       1.035306e+07       1.009286e+00</code></pre>
+<pre class="r"><code>TeachingRatings1$probs2 &lt;- predict(fit.all, type = &quot;response&quot;)
+table(predict = as.numeric(TeachingRatings1$probs2 &gt; 0.5), truth = TeachingRatings1$tenure) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict  no yes Sum
+##     0    29   9  38
+##     1    73 352 425
+##     Sum 102 361 463</code></pre>
+<pre class="r"><code># ACC
+(29 + 352)/463</code></pre>
+<pre><code>## [1] 0.8228942</code></pre>
+<pre class="r"><code># TNR
+29/102</code></pre>
+<pre><code>## [1] 0.2843137</code></pre>
+<pre class="r"><code># TPR
+352/361</code></pre>
+<pre><code>## [1] 0.9750693</code></pre>
+<pre class="r"><code># PPV
+352/425</code></pre>
+<pre><code>## [1] 0.8282353</code></pre>
+<pre class="r"><code>ROC &lt;- ggplot(TeachingRatings1) + geom_roc(aes(d = y, m = probs2, 
+    n.cute = 0))
+ROC</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-8-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROC)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.7870295</code></pre>
+<pre class="r"><code>k = 10
+data1 &lt;- TeachingRatings1[sample(nrow(TeachingRatings1)), ]
+folds &lt;- cut(seq(1:nrow(TeachingRatings1)), breaks = k, labels = F)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    train &lt;- data1[folds != i, ]
+    test &lt;- data1[folds == i, ]
+    truth &lt;- test$tenure
+    fit1 &lt;- glm(tenure ~ ., data = train, family = &quot;binomial&quot;)
+    prob &lt;- predict(fit.all, newdata = test, type = &quot;response&quot;)
+    
+    diags &lt;- rbind(diags, class_diag(prob, truth))
+}
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens     spec       ppv       auc
+## 1 0.8230342 0.9747187 0.306688 0.8280068 0.7991698</code></pre>
+<pre class="r"><code>library(glmnet)
+set.seed(1234)
+response &lt;- as.matrix(TeachingRatings1$tenure)
+explanatory &lt;- model.matrix(fit.all)[, -1]
+head(explanatory)</code></pre>
+<pre><code>##   genderfemale minorityyes center.age creditssingle center.beauty center.eval
+## 1            1           1 -12.365011             0     0.2899156   0.3017279
+## 2            0           0  10.634989             0    -0.7377323   0.5017279
+## 3            0           0   2.634989             0    -0.5719837  -0.2982721
+## 4            1           0  -8.365011             0    -0.6779635   0.3017279
+## 5            1           0 -17.365011             0     1.5097939   0.4017279
+## 6            0           0  13.634989             0     0.5885686   0.2017279
+##   divisionlower nativeno center.allstudents
+## 1             0        0        -12.1771058
+## 2             0        0        -35.1771058
+## 3             0        0         -0.1771058
+## 4             0        0         -9.1771058
+## 5             0        0         -7.1771058
+## 6             0        0        226.8228942</code></pre>
+<pre class="r"><code>cv &lt;- cv.glmnet(explanatory, response, family = &quot;binomial&quot;)
+lasso &lt;- glmnet(explanatory, response, family = &quot;binomial&quot;, lambda = cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 10 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                              s0
+## (Intercept)         1.541717460
+## genderfemale       -0.314506656
+## minorityyes         0.553136589
+## center.age         -0.019567422
+## creditssingle      -1.906695184
+## center.beauty      -0.027460000
+## center.eval        -0.082344113
+## divisionlower      -0.200436223
+## nativeno            1.054836793
+## center.allstudents  0.004168817</code></pre>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

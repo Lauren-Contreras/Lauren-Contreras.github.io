@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Lauren Contreras</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on Lauren Contreras</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Project 1</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Introduction For my first dataset, I gathered information logged by my iPhone under the pre-installed app “Health”. My daily steps, walking distance, and flights climbed are automatically logged and saved through my mobile device. Since I carry my phone everywhere I go, this is a reliable source of data. This information is also conveniently archived by date. Since I could use the date as my common variable, I decided to investigate if my mobility was affected by the Covid cases within Texas.</description>
+    </item>
+    
+    <item>
+      <title>Project 2</title>
+      <link>/project/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>Introduction From the academic years of 2000-2002, the University of Texas at Austin collected data to analyze the connection between different course evaluations to the ratings of beauty for its instructors. This dataset includes 12 variables with 463 observations. For the numeric variables, the dataset recorded the age of the instructions as “age”, the averaged rating (in which the mean was set to zero) by a panel of six students of the instructor’s physical appearance as “beauty”, the evaluation score for the course (on a scale of 1-5, meaning low to high) as “eval”, how many students participated in the evaluation as “students”, and the total number of students enrolled in the course as “allstudents”.</description>
+    </item>
+    
+  </channel>
+</rss>

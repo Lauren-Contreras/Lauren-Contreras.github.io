@@ -1,0 +1,10 @@
+---
+title = "nonsense"
+description = "I am excited to get off of work at 4p"
+tags = []
+categories = []
+---
+
+[Link to project 1](/project/project1/)
+
+[Link to google](https://www.google.com)

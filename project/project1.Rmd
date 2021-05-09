@@ -1,0 +1,165 @@
+---
+title: "Project 1"
+author: "Lauren Contreras"
+date: "April 4th"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+### Introduction
+
+For my first dataset, I gathered information logged by my iPhone under the pre-installed app "Health". My daily steps, walking distance, and flights climbed are automatically logged and saved through my mobile device. Since I carry my phone everywhere I go, this is a reliable source of data. This information is also conveniently archived by date. Since I could use the date as my common variable, I decided to investigate if my mobility was affected by the Covid cases within Texas. It is important to note that I only used dates from the start of the pandemic to when I chose to start gathering my datasets for the project. Finding my other dataset from the Harvard Dataverse, I was able to find the US COVID-19 Cases and Deaths documented by state and date. Selecting my chosen state (Texas), each date corresponded to the new Covid cases and deaths documented within Texas. Since both datasets have the same dates in common, I was able to join the two datasets. I find these datasets interesting since I want to see if Covid risk would deter me from leaving my apartment and thus decrease my steps, walking distance, and flights climbed outside. I think it would be interesting to see if my behavior aligned with the danger of Covid prevalency. I hope to see that my mobility decreased when Covid cases and deaths rised. 
+
+```{R}
+library(tidyverse)
+covid.data <- read_csv("us_state_confirmed_case.csv")
+health.data <- read_csv("Health Data.csv")
+```
+
+#### Tidying: Rearranging Wide/Long 
+
+Since both my datasets were already tidy, I chose to show my skills for rearranging datasets by making them untidy and then back to tidy. For both datasets, I pivoted them longer so that dates became repeated observations. I then pivoted them wider so that they reverted to their original form. 
+
+```{R}
+health.data.long <- health.data %>% pivot_longer(c(2:4), names_to="Exercise Type", values_to="Value")
+health.data.long %>% pivot_wider(names_from="Exercise Type", values_from="Value")
+
+covid.data.long <- covid.data %>% pivot_longer(c(2:3), names_to="Covid Occurrence", values_to="Rate")
+covid.data.long %>% pivot_wider(names_from="Covid Occurrence", values_from="Rate")
+```
+
+#### Joining/Merging
+
+I was able to merge the datasets through their common variable "dates". There were 371 observations for each dataset, and no observations were dropped during the joining process. Since both datasets had the exact same dates, I thought a full_join was appropriate. I wanted to retain all the information from the two datasets, so full_join helped since it returns all columns and rows. 
+
+
+```{R}
+full.data <- full_join(health.data, covid.data)
+```
+
+#### Wrangling
+
+While exploring my data, I realized that the variables Texas Covid Deaths and Texas Covid Cases where recorded as the accumulative total values rather the new observations for each individual day. To rectify this, I used code to find the rate of change in which the current value was subtracted by the previous value from the day before. I then removed unneeded variables using select, and I also removed the rows in which the values for 'Change.covid.death' and 'Change.covid.cases' were not available. Next, creating a new variable through mutate, I wanted to see the prevalence of deaths from Covid over the Covid cases recorded. I did this by dividing 'Change.covid.death' by 'Change.covid.cases', and I named this new variable 'Death.per.case'. I then piped this into the filter function, so I could see the minimum and maximum values for the new variable created. To prepare for the next portion of the data wrangling section, I needed to create a categorical variable of specific months from my Date observations. I first separated the dates by their '/", and then I united the month and year. After this was done, I could assign names to the "month.year" observations, creating my categorical variable. This dataset was saved as full.data1. I then demonstrated my ability to use the select function by rearranging the columns full.data1 in an order that would make the dataset more readable, naming this dataset as full.data2. Next, I used the group_by and arrange functions to see if the same months would match for the most covid deaths recorded in a single day and the least distance walked. Interestingly, these months did not line up like I expected they would. Finally, I used the group_by and summarize functions to illustrate the mean 'Change.covid.death' and mean 'Distance' according to each specific month. 
+
+```{R}
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+install.packages("kableExtra")
+library(kableExtra)
+
+full.data <- full.data %>% mutate(previous = lag(`Texas Covid Deaths`), Change.covid.death = `Texas Covid Deaths` - previous) %>%  mutate(previous2 = lag(`Texas Covid Cases`), Change.covid.cases = `Texas Covid Cases` - previous) %>%    select(-previous, -previous2, -`Texas Covid Cases`, -`Texas Covid Deaths`) %>%   filter(!is.na(`Change.covid.death`)) %>% filter(!is.na(`Change.covid.cases`)) 
+
+full.data %>% mutate(Death.per.case = `Change.covid.death`/`Change.covid.cases`) %>%
+  filter(Death.per.case == max(Death.per.case)) %>% kbl(caption = "Maximum Covid Death per Covid Case") %>% kable_classic_2(full_width = F)
+full.data %>% mutate(Death.per.case = `Change.covid.death`/`Change.covid.cases`) %>%
+  filter(Death.per.case == min(Death.per.case)) %>% kbl(caption = "Minimum Covid Death per Covid Case") %>% kable_classic_2(full_width = F)
+
+full.data1 <- full.data %>% separate(Date, sep="/", into = c("Month", "Day", "Year")) %>% 
+  unite(Month, Year, col="Date",sep=".", remove = F) %>% 
+  mutate(Date2 = recode(Date,"3.20" = "march20", "4.20" = "april20", "5.20" = "may20", "6.20" = "june20", 
+         "7.20" = "july20", "8.20" = "august20", "9.20" = "september20", "10.20" = "october20", 
+         "11.20" = "november20", "12.20" = "december20", "1.21" = "january21", "2.21" = "february21", 
+         "3.21" = "march21"))
+
+full.data2 <- full.data1 %>% select('Date2', 'Month', 'Day', 'Year', everything()) %>% select(-'Date') 
+
+full.data2 %>% group_by(Date2) %>% arrange(desc(`Change.covid.death`)) %>% kbl(caption = "Descending Change in Covid Death") %>% kable_classic_2(full_width = F)
+full.data2 %>% group_by(Date2)  %>% arrange(-desc(`Distance`)) %>% kbl(caption = "Ascending Distance") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% group_by(Date2) %>% summarize(mean(`Change.covid.death`), mean(Distance)) %>% kbl(caption = "Mean Values for 'Change in Covid Death' and 'Distance' According to Distance") %>% kable_classic_2(full_width = F)
+```
+
+After creating a categorical variable for date, I was able to group my date by each specific month. Then using the summarize_if function, I made summary statistics for all my numeric variables to show mean, standard deviation, variance, minimum value, maximum value, and number of distinct values. I then found all these same summary statistics for each numeric variable without grouping by date. Finally, I created a correlation matrix between all my numeric variables in preparation for the next portion of the project. I found there was the most variance and standard deviation in my statistics relating to Covid. I interpret this as showing that my exercise stayed relatively consistent throughout the year, despite the fluctuations in Covid. 
+
+```{R}
+full.data2 %>% group_by(Date2) %>% summarize_if(is.numeric, mean) %>% kbl(caption = "Mean Values for Numeric Variables") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% group_by(Date2) %>% summarize_if(is.numeric, sd) %>% kbl(caption = "Standard Deviation Values for Numeric Variables") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% group_by(Date2) %>% summarize_if(is.numeric, var) %>% kbl(caption = "Variance Values for Numeric Variables") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% group_by(Date2) %>% summarize_if(is.numeric, min) %>% kbl(caption = "Minimum Values for Numeric Variables") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% group_by(Date2) %>% summarize_if(is.numeric, max) %>% kbl(caption = "Maximum Values for Numeric Variables") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% group_by(Date2) %>% summarize_if(is.numeric, n_distinct) %>% kbl(caption = "Number of Distinct Values for Numeric Variables") %>% 
+  kable_classic_2(full_width = F)
+
+full.data2 %>% summarize(mean(Distance), sd(Distance), var(Distance), min(Distance), max(Distance), n_distinct(Distance)) %>% kbl(caption = "Summary Statistics for Distance") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% summarize(mean(`Flights Climbed`), sd(`Flights Climbed`), var(`Flights Climbed`), 
+min(`Flights Climbed`), max(`Flights Climbed`), n_distinct(`Flights Climbed`)) %>% kbl(caption = "Summary Statistics for Flights Climbed") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% summarize(mean(Steps), sd(Steps), var(Steps), min(Steps), max(Steps), n_distinct(Steps)) %>% 
+  kbl(caption = "Summary Statistics for Steps") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% summarize(mean(`Change.covid.cases`), sd(`Change.covid.cases`), var(`Change.covid.cases`), 
+      min(`Change.covid.cases`), max(`Change.covid.cases`), n_distinct(`Change.covid.cases`)) %>% kbl(caption = "Summary Statistics for Change in Covid Cases") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% summarize(mean(`Change.covid.death`), sd(`Change.covid.death`), var(`Change.covid.death`), 
+        min(`Change.covid.death`), max(`Change.covid.death`), n_distinct(`Change.covid.death`)) %>% kbl(caption = "Summary Statistics for Change in Covid Deaths") %>% kable_classic_2(full_width = F)
+
+full.data2 %>% select_if(is.numeric) %>% cor(use="pair") %>% kbl(caption = "Correlation Matrix") %>% kable_classic_2(full_width = F)
+```
+
+#### 4. Visualizing
+
+Making a correlation heat map for my numeric variables, I followed the procedures as done in class for turning the matrix into a data frame that would be workable to plot. I titled the heat map as "Correlation Matrix". I had to rotate my x-axis labels by 90 degrees in order for all the variable names to fit. For my color gradient, I chose the colors red for "low", white for "mid", and blue for "high". However, since none of my variables were negatively correlated to one another, the heatmap only illustrated white and blue. Overall, my personal exercise variables were very weakly positively correlated to the rate of Covid cases and deaths. This went against my prediction that the rate of Covid cases and deaths would deter my exercise.
+
+Next, I made a ggplot for plotting 'Distance' against 'Change.covid.death'. To make the data more readable, I grouped the data by month and then mutated a new variable for the mean 'Change.covid.death' for each month. The 'Distance' observations for each month were coded to be white to stand out. I also change the default theme to present the legend below the ggplot. I chose to color by month the line created for the grouped mean 'Change.covid.death'. I labeled the plot, x-axis, y-axis accordingly. I also manually scaled the x-axis breaks sequentially from 1 to 5. Finally, I created a summary stat for the mean 'Distance' for each month. I colored this black and matched the point size to that of the other 'Distance' observations. Once my ggplot was created, I noticed that different months had their own spread of 'Distance' observations. But I was unable to identify a trend between the level of spread and the mean 'Change.covid.death' for each month. For example, January 2021 had the highest mean 'Change.covid.death' and March 2020 had the lowest, but they both demonstrated the same spread of observations. All months had the same relatively low mean 'Distance', showing that I frequently did not walk very far each month. 
+
+Lastly, I made another ggplot to make a count chart for 'Steps' against 'Change.covid.cases'. To include another variable from my data, I created a new variable in which I relabeled the months from 'Date2' as their corresponding season. I labeled the plot, x-axis, y-axis accordingly. Additionally, I chose to change the plot theme to "theme_minimal" in order to have the points be more accessible visually. I also recolored the seasons to colors that I believed were appropriate for each specific season. While analyzing the visualization of this data, I did not find that there was a particular trend between 'Change.covid.cases' and daily 'Steps'. The 'Change.covid.cases' gradually increase as the year progressed, but the distribution pattern for my steps stayed relatively consistent when comparing the seasons to each other. Overall, I would conclude that Covid cases and deaths did not greatly affect my personal exercise. 
+
+```{R}
+full.data2 %>% select_if(is.numeric) %>% cor(use="pair") %>% as.data.frame %>% rownames_to_column %>% pivot_longer(-1) %>% ggplot(aes(rowname,name,fill=value))+geom_tile()+ geom_text(aes(label=round(value,2))) +
+xlab("")+ylab("")+coord_fixed() + scale_fill_gradient2(low="red",mid="white",high="blue") + theme(axis.text.x = element_text(angle = 90)) + ggtitle("Correlation Matrix")
+ 
+full.data2 %>% group_by(Date2) %>% mutate(mean = mean(`Change.covid.death`)) %>%  ggplot(aes(`mean`, Distance)) + geom_line(aes(color=Date2)) + geom_point(color = "white", size = 0.5) +
+  theme(legend.position="bottom") + ggtitle("Distance as a Function of Covid Deaths") + 
+  xlab("Covid Deaths (per month)") + ylab("Distance (miles)") + scale_y_continuous(breaks=1:5) + 
+  stat_summary(fun = mean, size = 0.5, color = "black", geom = "point")
+
+full.data2 %>% 
+  mutate(Season = recode(Date2,"march20" = "spring", "april20" = "spring", "may20" = "spring", "june20" = "summer", 
+  "july20" = "summer", "august20" = "summer", "september20" = "fall", "october20" = "fall", 
+  "november20" = "fall", "december20" = "winter", "january21" = "winter", "february21" = "winter", 
+  "march21" = "spring")) %>% ggplot() + ggtitle("Steps as a Function of Covid Cases") + 
+   geom_count(aes(`Change.covid.cases`, Steps, color = Season)) + theme_minimal() + 
+  xlab("Covid Cases") + ylab("Steps") + 
+  scale_color_manual(breaks = c("fall", "spring", "summer", "winter"), values=c("brown", "pink", "green", "blue"))
+```
+
+#### Dimensionality Reduction
+
+I uploaded a few packages to ensure that my code would run correctly, especially since I was getting error messages when originally trying to knit my document. To begin, I removed the non-numeric variables from my dataset so that clustering would function appropriately. Next, using all my numeric variables, I coded a ggplot showing the silhouette width for 2 to 10 clusters. This is to show the cohesion between the clusters and to illustrate the optimal cluster number for my dataset. The largest silhouette width shows the largest amount of similarity for an observation within a cluster relative to the other clusters, or rather how well points are assigned to their cluster. I found that 2 clusters was optimal for my dataset. Using the PAM function, I assigned my dataset 2 clusters and saved the dataset as pam1. Finally, I piped my adjusted dataset into the mutate function so that I could create a new variable for the PAM clustering. This was also piped to make a ggplot for the visualization of the different clusters. Analyzing my results, every variable has a positive correlation to one another. However, since many of the plots have overlap between the clusters, the k means therefore does not have an intrinsic measure for uncertainty and is unsure which cluster to assign each point. This means that there is lack of variation between the observations. For the plots without overlap, I noticed it only occurred when one of the variable for for "Change in Covid Cases". This shows that this variable had decent variation. Focusing on my goodness of fit, I found the average silhouette width to be 0.69. After plotting, I conclude that a reasonable structure has been found. Due to my high volume of observations, my average silhouette plot of PAM failed to populate, but my value was still rendered. This allowed to still make my conclusion over the level of structure for PAM. 
+
+```{R}
+library(cluster)
+library(ggplot2)
+library(GGally)
+
+dat <- full.data2 %>% select(-Date2, -Month, -Day, -Year)
+
+sil_width<-vector()
+for(i in 2:10){  
+  pam_fit <- pam(dat, k = i)  
+  sil_width[i] <- pam_fit$silinfo$avg.width 
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+
+pam1 <- dat %>% pam(k=2) 
+pam1
+
+dat %>% mutate(cluster=as.factor(pam1$clustering)) %>% 
+  ggpairs(columns = c("Distance","Flights Climbed","Steps","Change.covid.death","Change.covid.cases"), aes(color=cluster))
+
+pam1$silinfo$avg.width
+plot(pam1,which=2)
+```
