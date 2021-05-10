@@ -6,7 +6,18 @@
     <description>Recent content in Posts on Lauren Contreras</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Thu, 23 Jul 2015 21:13:14 -0500</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 09 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Test Blog Post</title>
+      <link>/post/2021/05/09/test-blog-post/</link>
+      <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/05/09/test-blog-post/</guid>
+      <description>Link to project 1
+Link to google
+head(Loblolly)  ## height age Seed ## 1 4.51 3 301 ## 15 10.89 5 301 ## 29 28.72 10 301 ## 43 41.74 15 301 ## 57 52.70 20 301 ## 71 60.92 25 301 str(Loblolly) ## Classes &amp;#39;nfnGroupedData&amp;#39;, &amp;#39;nfGroupedData&amp;#39;, &amp;#39;groupedData&amp;#39; and &amp;#39;data.frame&amp;#39;: 84 obs. of 3 variables: ## $ height: num 4.51 10.89 28.72 41.74 52.7 ... ## $ age : num 3 5 10 15 20 25 3 5 10 15 .</description>
+    </item>
+    
     <item>
       <title>Hello R Markdown</title>
       <link>/post/2015/07/23/hello-r-markdown/</link>
