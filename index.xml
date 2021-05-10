@@ -13,18 +13,9 @@
       <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
       
       <guid>/post/2021/05/09/project-blog-post/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Test Blog Post</title>
-      <link>/post/2021/05/09/test-blog-post/</link>
-      <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
-      
-      <guid>/post/2021/05/09/test-blog-post/</guid>
       <description>Link to project 1
 Link to google
-head(Loblolly)  ## height age Seed ## 1 4.51 3 301 ## 15 10.89 5 301 ## 29 28.72 10 301 ## 43 41.74 15 301 ## 57 52.70 20 301 ## 71 60.92 25 301 str(Loblolly) ## Classes &amp;#39;nfnGroupedData&amp;#39;, &amp;#39;nfGroupedData&amp;#39;, &amp;#39;groupedData&amp;#39; and &amp;#39;data.frame&amp;#39;: 84 obs. of 3 variables: ## $ height: num 4.51 10.89 28.72 41.74 52.7 ... ## $ age : num 3 5 10 15 20 25 3 5 10 15 .</description>
+Introduction I used the HW 6 example for the mosquito weight for the Aedes aegypti species. I chose to upload the vector of mosquito weights onto python, assigning the objects as “females” and “males” accordingly. I also calculated the mean of these weights through python. Next, I reticulated this vector into R. I then had to converted the python objects into numeric R objects since I believe the orginial object were being interpreted as factors.</description>
     </item>
     
     <item>

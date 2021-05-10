@@ -1,9 +1,55 @@
 ---
 title: Project Blog Post
-author: ''
+author: 'Lauren Contreras'
 date: '2021-05-09'
 slug: project-blog-post
 categories: []
 tags: []
-description: ''
+description: 'The actual blog post to my site following the instructions'
 ---
+
+[Link to project 1](/project/project1/)
+
+[Link to google](https://www.google.com)
+
+### Introduction
+
+I used the HW 6 example for the mosquito weight for the Aedes aegypti species. I chose to upload the vector of mosquito weights onto python, assigning the objects as "females" and "males" accordingly. I also calculated the mean of these weights through python. Next, I reticulated this vector into R. I then had to converted the python objects into numeric R objects since I believe the orginial object were being interpreted as factors. Next, I created the same random distribution as seen in the homework and then I calculated the mean difference as my test statistic. The p-value was shown to be signifcant at a value of 0.0034. I then incorporate a plot visualizing the null distribution and the test statistic. 
+
+![](/post/2021-05-09-project-blog-post_files/aedes-aegypti.jpg)
+
+```{R}
+library(reticulate)
+``` 
+
+```{python}
+females = [0.291, 0.208, 0.241, 0.437, 0.228, 0.256, 0.208, 0.234, 0.320, 0.340, 0.150]
+males = [0.185, 0.222, 0.149, 0.187, 0.191, 0.219, 0.132, 0.144, 0.140]
+sum(females)/len(females)
+sum(males)/len(males)
+``` 
+
+```{R}
+library(ggplot2)
+library(dplyr)
+Female <- as.numeric(py$females)
+Male <- as.numeric(py$males)
+
+set.seed(348)
+
+dat <- data.frame(sex = c(rep("Female", 11), rep("Male", 9)), weight = c(Female, Male))
+head(dat)
+
+random <- vector()
+for (i in 1:5000) {
+  rand.dat <- data.frame(weight = sample(dat$weight), sex = dat$sex)
+  random[i] <- mean(rand.dat[rand.dat$sex == "Male", ]$weight) - mean(rand.dat[rand.dat$sex == "Female", ]$weight)
+}
+
+dat %>% group_by(sex) %>% summarize(means = mean(weight)) %>% 
+  summarize("mean.diff" = diff(means))
+
+mean(random > 0.09048485 | random < -0.09048485)
+
+data.frame(random) %>%ggplot(aes(random)) + geom_histogram(aes(y=..density..)) + geom_density() + geom_vline(xintercept = 0.09048485) + geom_vline(xintercept = -0.09048485)
+``` 
