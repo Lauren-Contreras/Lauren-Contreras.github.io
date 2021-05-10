@@ -15,7 +15,7 @@
       <guid>/post/2021/05/09/project-blog-post/</guid>
       <description>Link to project 1
 Link to google
-Introduction I used the HW 6 example for the mosquito weight for the Aedes aegypti species. I chose to upload the vector of mosquito weights onto python, assigning the objects as “females” and “males” accordingly. I also calculated the mean of these weights through python. Next, I reticulated this vector into R. I then had to converted the python objects into numeric R objects since I believe the orginial object were being interpreted as factors.</description>
+Introduction I used the HW 6 example for the mosquito weight for the Aedes aegypti species. I chose to upload the vector of mosquito weights onto python, assigning the objects as “females” and “males” accordingly. I also calculated the mean of these weights through python. Next, I reticulated this vector into R. I then had to converted the python objects into numeric R objects since I believe the original object were being interpreted as factors.</description>
     </item>
     
     <item>

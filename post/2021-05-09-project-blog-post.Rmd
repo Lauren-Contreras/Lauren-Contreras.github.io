@@ -14,7 +14,7 @@ description: 'The actual blog post to my site following the instructions'
 
 ### Introduction
 
-I used the HW 6 example for the mosquito weight for the Aedes aegypti species. I chose to upload the vector of mosquito weights onto python, assigning the objects as "females" and "males" accordingly. I also calculated the mean of these weights through python. Next, I reticulated this vector into R. I then had to converted the python objects into numeric R objects since I believe the orginial object were being interpreted as factors. Next, I created the same random distribution as seen in the homework and then I calculated the mean difference as my test statistic. The p-value was shown to be signifcant at a value of 0.0034. I then incorporate a plot visualizing the null distribution and the test statistic. 
+I used the HW 6 example for the mosquito weight for the Aedes aegypti species. I chose to upload the vector of mosquito weights onto python, assigning the objects as "females" and "males" accordingly. I also calculated the mean of these weights through python. Next, I reticulated this vector into R. I then had to converted the python objects into numeric R objects since I believe the original object were being interpreted as factors. Next, I created the same random distribution as seen in the homework and then I calculated the mean difference as my test statistic. The p-value was shown to be significant at a value of 0.0034. I then incorporate a plot visualizing the null distribution and the test statistic. The majority of the distribution is within the test statistic range.
 
 ![](/post/2021-05-09-project-blog-post_files/aedes-aegypti.jpg)
 
